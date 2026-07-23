@@ -53,6 +53,11 @@ jobs:
         echo ""
         echo "All metadata structure checks passed!"
 
+    - name: Install xmllint
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libxml2-utils
+
     - name: Validate XML files
       run: |
         echo "Validating XML metadata files..."
@@ -63,6 +68,7 @@ jobs:
             echo "✓ $xml_file"
           else
             echo "✗ $xml_file has XML syntax errors"
+            xmllint --noout "$xml_file"
             exit 1
           fi
         done
