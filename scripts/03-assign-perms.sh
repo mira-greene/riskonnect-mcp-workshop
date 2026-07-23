@@ -15,7 +15,7 @@ info "Target org: $ORG"
 echo ""
 
 # Get current username
-USERNAME=$(sf org display --target-org "$ORG" --json | grep -o '"username":"[^"]*' | cut -d'"' -f4)
+USERNAME=$(sf org display --target-org "$ORG" --json | jq -r '.result.username // empty')
 info "Current user: $USERNAME"
 echo ""
 
@@ -23,12 +23,15 @@ echo ""
 PERMSET_NAME="Riskonnect_Policy_Agent_Perm_Set"
 
 info "Assigning $PERMSET_NAME..."
-if sf org assign permset --name "$PERMSET_NAME" --target-org "$ORG" 2>&1 | grep -q "already assigned"; then
-  warning "Permission set already assigned"
-elif sf_run "org assign permset --name $PERMSET_NAME --target-org $ORG"; then
+# Run once and capture output. `set -e` is active, so guard the exit code with `|| true`.
+ASSIGN_OUT=$(sf org assign permset --name "$PERMSET_NAME" --target-org "$ORG" 2>&1 || true)
+if echo "$ASSIGN_OUT" | grep -qiE "already assigned|Duplicate PermissionSetAssignment"; then
+  warning "Permission set already assigned (skipping)"
+elif echo "$ASSIGN_OUT" | grep -qi "Assigned permission set\|Permission Set Assignment"; then
   success "Permission set assigned"
 else
   error "Failed to assign permission set"
+  echo "$ASSIGN_OUT"
   exit 1
 fi
 

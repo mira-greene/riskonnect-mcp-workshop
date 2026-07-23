@@ -265,6 +265,45 @@ MCP Workbench is **optional** — it is a diagnostic tool, not required for the 
 
 ---
 
+## Issue: Clean metadata dry-run, but `sf agent publish` fails (validate is compile-only)
+
+**Symptom:** `sf project deploy start --dry-run` reports 0 failures, but the agent later fails to
+compile or returns no data — the dry-run gave false confidence.
+
+**Root cause:** Metadata dry-run validates XML structure only; it never invokes the Agent Script
+compiler. Two separate checks are needed:
+
+- `sf agent validate authoring-bundle --api-name PolicyAgent` — runs the **Agent Script compiler**
+  (catches indentation, `True`/`False`, block structure, unresolved `@actions.*` references).
+- `sf agent publish authoring-bundle` — the **only** step that validates `mcpTool://` targets against
+  actually-registered MCP assets, `default_agent_user`, and backing logic.
+
+**Two things `validate` passing does NOT prove** (both surface only at publish/runtime):
+
+1. **`source:` on an action is optional to the compiler.** The compiler accepts an action definition
+   with or without a `source:` property (both return `success:true`). Whether `source:` is load-bearing
+   for runtime MCP asset binding is unverified — we removed it because it is not a documented action
+   property. If a published agent activates but returns no data, re-check the `mcpTool://` target and
+   the in-org action wiring (Module 4, Step 2) before suspecting `source:`.
+2. **The `mcpTool://` target string is not checked until publish.** Format is
+   `mcpTool://mcptoolx5fx5f<toolname>` (`x5fx5f` encodes the `__` in the registered asset name). A wrong
+   target publishes cleanly but silently returns no data.
+
+**Structure rule (caused a real compile failure):** action **definitions** must live inside each owning
+subagent's `actions:` block (sibling of `reasoning:`) — a single top-level `actions:` block is illegal
+and fails with `Unknown block: actions`. The subagent's `reasoning.actions` only holds **invocations**
+(`@actions.<name>`).
+
+**`default_agent_user`:** an `AgentforceEmployeeAgent` must **omit** it (setting it causes publish to
+fail with "Internal Error"). Only `AgentforceServiceAgent` requires it. A hook/lint warning about a
+missing `default_agent_user` on an employee agent is a false positive — do not add it.
+
+**Facilitator action:** run the full **Module 3 → publish → `sf agent preview --use-live-actions`** path
+in a test org before the event. This is the only step that de-risks the `mcpTool://` binding end to end;
+a clean `validate` is necessary but not sufficient.
+
+---
+
 ## Best Practices for Facilitators
 
 1. **Pre-provision orgs** — Agentforce must be enabled by Salesforce support; participants cannot enable it themselves.

@@ -50,6 +50,29 @@ start_agent agent_router:
 subagent policy_analysis:
     label: "Policy Analysis"
     description: "Retrieve and analyze current policy documents."
+    actions:
+        get_policy_details:
+            description: "Retrieve current policy document metadata and content summary."
+            require_user_confirmation: False
+            include_in_progress_indicator: False
+            target: "mcpTool://mcptoolx5fx5fgetx5fpolicyx5fdetails"
+            inputs:
+                policy_id: string
+                    description: "The policy's POL-### identifier. ALWAYS resolve the policy to its id before calling — map the policy name to its id using this roster: Data Privacy Policy = POL-001; Incident Response Policy = POL-002; Third-Party Risk Management Policy = POL-003; Cybersecurity Policy = POL-004; Business Continuity Policy = POL-005. If the user gives a name in the roster, pass the matching POL-### id. If the policy is not in the roster, pass the exact name or ID the user said. Never pass an empty value."
+                    is_required: True
+            outputs:
+                policy_id: string
+                    description: "Policy identifier."
+                policy_name: string
+                    description: "Policy name."
+                category: string
+                    description: "Policy category (e.g. Data Privacy, Cybersecurity)."
+                owner: string
+                    description: "Policy owner name."
+                last_review_date: string
+                    description: "Last review date."
+                status: string
+                    description: "Current status (Active, Under Review, Archived)."
     reasoning:
         instructions: ->
             | The policy under discussion is {!@variables.policy_id if @variables.policy_id else "not yet identified"}.
@@ -65,6 +88,24 @@ subagent policy_analysis:
 subagent regulatory_gap_check:
     label: "Regulatory Gap Check"
     description: "Compare a policy against a regulation to identify compliance gaps."
+    actions:
+        analyze_regulatory_gap:
+            description: "Compare a policy against a regulation to identify compliance gaps."
+            require_user_confirmation: False
+            include_in_progress_indicator: False
+            target: "mcpTool://mcptoolx5fx5fanalyzex5fregulatoryx5fgap"
+            inputs:
+                policy_id: string
+                    description: "The policy's POL-### identifier. Use the same roster as get_policy_details."
+                    is_required: True
+                regulation_name: string
+                    description: "The regulation to analyze against (e.g. GDPR, CCPA, SEC Cyber Rules, NIST CSF)."
+                    is_required: True
+            outputs:
+                policy_id: string
+                    description: "Policy identifier."
+                regulation_name: string
+                    description: "Regulation name."
     reasoning:
         instructions: ->
             | The policy under discussion is {!@variables.policy_id if @variables.policy_id else "not yet identified"}.
@@ -82,6 +123,24 @@ subagent regulatory_gap_check:
 subagent policy_updates:
     label: "Policy Update Recommendations"
     description: "Generate specific policy language recommendations to close regulatory gaps."
+    actions:
+        recommend_policy_updates:
+            description: "Generate specific policy language recommendations to address regulatory gaps."
+            require_user_confirmation: False
+            include_in_progress_indicator: False
+            target: "mcpTool://mcptoolx5fx5frecommendx5fpolicyx5fupdates"
+            inputs:
+                policy_id: string
+                    description: "The policy's POL-### identifier. Use the same roster as get_policy_details."
+                    is_required: True
+                regulation_name: string
+                    description: "The regulation to address (e.g. GDPR, CCPA, SEC Cyber Rules)."
+                    is_required: True
+            outputs:
+                policy_id: string
+                    description: "Policy identifier."
+                regulation_name: string
+                    description: "Regulation name."
     reasoning:
         instructions: ->
             | The policy under discussion is {!@variables.policy_id if @variables.policy_id else "not yet identified"}.
@@ -103,100 +162,3 @@ subagent off_topic:
         instructions: ->
             | The user has asked about something outside policy compliance and regulatory gap analysis.
             | Politely explain you can help with policy details, regulatory gap checks, and policy update recommendations, and ask which policy they would like to review. Do not attempt to answer the off-topic request.
-
-actions:
-    get_policy_details:
-        description: |
-            Retrieve current policy document metadata and content summary.
-        label: "get_policy_details - RiskonnectPolicyAdvisor"
-        require_user_confirmation: False
-        include_in_progress_indicator: False
-        source: "get_policy_details_action_id"
-        target: "mcpTool://mcptoolx5fx5fgetx5fpolicyx5fdetails"
-
-        inputs:
-            "policy_id": string
-                description: |
-                  The policy's POL-### identifier. ALWAYS resolve the policy to its id before calling — map the policy name to its id using this roster: Data Privacy Policy = POL-001; Incident Response Policy = POL-002; Third-Party Risk Management Policy = POL-003; Cybersecurity Policy = POL-004; Business Continuity Policy = POL-005. If the user gives a name in the roster, pass the matching POL-### id. If the policy is not in the roster, pass the exact name or ID the user said. Never pass an empty value.
-                label: "string"
-                is_required: True
-                is_user_input: False
-        outputs:
-            policy_id: string
-                description: "Policy identifier."
-                is_displayable: True
-            policy_name: string
-                description: "Policy name."
-                is_displayable: True
-            category: string
-                description: "Policy category (e.g. Data Privacy, Cybersecurity)."
-                is_displayable: True
-            owner: string
-                description: "Policy owner name."
-                is_displayable: True
-            last_review_date: string
-                description: "Last review date."
-                is_displayable: True
-            status: string
-                description: "Current status (Active, Under Review, Archived)."
-                is_displayable: True
-
-    analyze_regulatory_gap:
-        description: |
-            Compare a policy against a regulation to identify compliance gaps.
-        label: "analyze_regulatory_gap - RiskonnectPolicyAdvisor"
-        require_user_confirmation: False
-        include_in_progress_indicator: False
-        source: "analyze_regulatory_gap_action_id"
-        target: "mcpTool://mcptoolx5fx5fanalyzex5fregulatoryx5fgap"
-
-        inputs:
-            "policy_id": string
-                description: |
-                  The policy's POL-### identifier. Use the same roster as get_policy_details.
-                label: "string"
-                is_required: True
-                is_user_input: False
-            "regulation_name": string
-                description: |
-                  The regulation to analyze against (e.g. GDPR, CCPA, SEC Cyber Rules, NIST CSF).
-                label: "string"
-                is_required: True
-                is_user_input: False
-        outputs:
-            policy_id: string
-                description: "Policy identifier."
-                is_displayable: True
-            regulation_name: string
-                description: "Regulation name."
-                is_displayable: True
-
-    recommend_policy_updates:
-        description: |
-            Generate specific policy language recommendations to address regulatory gaps.
-        label: "recommend_policy_updates - RiskonnectPolicyAdvisor"
-        require_user_confirmation: False
-        include_in_progress_indicator: False
-        source: "recommend_policy_updates_action_id"
-        target: "mcpTool://mcptoolx5fx5frecommendx5fpolicyx5fupdates"
-
-        inputs:
-            "policy_id": string
-                description: |
-                  The policy's POL-### identifier. Use the same roster as get_policy_details.
-                label: "string"
-                is_required: True
-                is_user_input: False
-            "regulation_name": string
-                description: |
-                  The regulation to address (e.g. GDPR, CCPA, SEC Cyber Rules).
-                label: "string"
-                is_required: True
-                is_user_input: False
-        outputs:
-            policy_id: string
-                description: "Policy identifier."
-                is_displayable: True
-            regulation_name: string
-                description: "Regulation name."
-                is_displayable: True
