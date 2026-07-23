@@ -1,0 +1,98 @@
+name: Validate Metadata
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install Salesforce CLI
+      run: |
+        npm install -g @salesforce/cli@latest
+        sf version
+
+    - name: Verify sfdx-project.json
+      run: |
+        if [ -f sfdx-project.json ]; then
+          echo "✓ sfdx-project.json found"
+          cat sfdx-project.json | jq .
+        else
+          echo "✗ sfdx-project.json not found"
+          exit 1
+        fi
+
+    - name: Check metadata structure
+      run: |
+        echo "Checking metadata directory structure..."
+
+        # Check for required directories
+        test -d "force-app/main/default/objects" && echo "✓ Objects directory exists" || exit 1
+        test -d "force-app/main/default/namedCredentials" && echo "✓ Named Credentials directory exists" || exit 1
+        test -d "force-app/main/default/externalCredentials" && echo "✓ External Credentials directory exists" || exit 1
+        test -d "force-app/main/default/permissionsets" && echo "✓ Permission Sets directory exists" || exit 1
+        test -d "force-app/main/default/aiAuthoringBundles" && echo "✓ Agent bundles directory exists" || exit 1
+
+        # Check for required metadata files
+        test -f "force-app/main/default/objects/Policy_Document__c/Policy_Document__c.object-meta.xml" && echo "✓ Policy_Document__c object found" || exit 1
+        test -f "force-app/main/default/objects/Policy_Gap__c/Policy_Gap__c.object-meta.xml" && echo "✓ Policy_Gap__c object found" || exit 1
+        test -f "force-app/main/default/aiAuthoringBundles/PolicyAgent/PolicyAgent.agent" && echo "✓ PolicyAgent.agent found" || exit 1
+
+        echo ""
+        echo "All metadata structure checks passed!"
+
+    - name: Validate XML files
+      run: |
+        echo "Validating XML metadata files..."
+
+        # Find all XML files and validate them
+        find force-app -name "*.xml" -type f -print0 | while IFS= read -r -d '' xml_file; do
+          if xmllint --noout "$xml_file" 2>/dev/null; then
+            echo "✓ $xml_file"
+          else
+            echo "✗ $xml_file has XML syntax errors"
+            exit 1
+          fi
+        done
+
+        echo ""
+        echo "All XML files are valid!"
+
+    - name: Check scripts are executable
+      run: |
+        echo "Checking script permissions..."
+
+        for script in scripts/*.sh; do
+          if test -x "$script"; then
+            echo "✓ $script is executable"
+          else
+            echo "✗ $script is not executable"
+            exit 1
+          fi
+        done
+
+        echo ""
+        echo "All scripts are executable!"
+
+    - name: Summary
+      run: |
+        echo ""
+        echo "=========================================="
+        echo "✓ All validation checks passed!"
+        echo "=========================================="
+        echo ""
+        echo "Metadata structure: OK"
+        echo "XML syntax: OK"
+        echo "Script permissions: OK"
