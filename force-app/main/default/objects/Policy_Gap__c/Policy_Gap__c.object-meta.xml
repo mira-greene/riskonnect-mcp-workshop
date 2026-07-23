@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Policy Gap</label>
+    <pluralLabel>Policy Gaps</pluralLabel>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <sharingModel>ReadWrite</sharingModel>
+    <enableActivities>true</enableActivities>
+    <enableBulkApi>true</enableBulkApi>
+    <enableReports>true</enableReports>
+    <enableSearch>true</enableSearch>
+    <enableSharing>true</enableSharing>
+    <enableStreamingApi>true</enableStreamingApi>
+    <nameField>
+        <label>Gap Name</label>
+        <type>AutoNumber</type>
+        <displayFormat>GAP-{0000}</displayFormat>
+    </nameField>
+    <fields>
+        <fullName>Policy_Document__c</fullName>
+        <label>Policy Document</label>
+        <type>Lookup</type>
+        <required>false</required>
+        <referenceTo>Policy_Document__c</referenceTo>
+        <relationshipLabel>Policy Gaps</relationshipLabel>
+        <relationshipName>Policy_Gaps</relationshipName>
+        <deleteConstraint>SetNull</deleteConstraint>
+    </fields>
+    <fields>
+        <fullName>Regulation_Name__c</fullName>
+        <label>Regulation Name</label>
+        <type>Text</type>
+        <length>255</length>
+        <required>false</required>
+    </fields>
+    <fields>
+        <fullName>Regulation_Article__c</fullName>
+        <label>Regulation Article</label>
+        <type>Text</type>
+        <length>100</length>
+        <required>false</required>
+    </fields>
+    <fields>
+        <fullName>Gap_Description__c</fullName>
+        <label>Gap Description</label>
+        <type>LongTextArea</type>
+        <length>32768</length>
+        <visibleLines>5</visibleLines>
+        <required>false</required>
+    </fields>
+    <fields>
+        <fullName>Recommended_Action__c</fullName>
+        <label>Recommended Action</label>
+        <type>LongTextArea</type>
+        <length>32768</length>
+        <visibleLines>5</visibleLines>
+        <required>false</required>
+    </fields>
+    <fields>
+        <fullName>Severity__c</fullName>
+        <label>Severity</label>
+        <type>Picklist</type>
+        <required>false</required>
+        <valueSet>
+            <restricted>true</restricted>
+            <valueSetDefinition>
+                <sorted>false</sorted>
+                <value>
+                    <fullName>Critical</fullName>
+                    <default>false</default>
+                    <label>Critical</label>
+                </value>
+                <value>
+                    <fullName>High</fullName>
+                    <default>false</default>
+                    <label>High</label>
+                </value>
+                <value>
+                    <fullName>Medium</fullName>
+                    <default>true</default>
+                    <label>Medium</label>
+                </value>
+                <value>
+                    <fullName>Low</fullName>
+                    <default>false</default>
+                    <label>Low</label>
+                </value>
+            </valueSetDefinition>
+        </valueSet>
+    </fields>
+    <fields>
+        <fullName>Status__c</fullName>
+        <label>Status</label>
+        <type>Picklist</type>
+        <required>false</required>
+        <valueSet>
+            <restricted>true</restricted>
+            <valueSetDefinition>
+                <sorted>false</sorted>
+                <value>
+                    <fullName>Open</fullName>
+                    <default>true</default>
+                    <label>Open</label>
+                </value>
+                <value>
+                    <fullName>In Progress</fullName>
+                    <default>false</default>
+                    <label>In Progress</label>
+                </value>
+                <value>
+                    <fullName>Resolved</fullName>
+                    <default>false</default>
+                    <label>Resolved</label>
+                </value>
+                <value>
+                    <fullName>Accepted Risk</fullName>
+                    <default>false</default>
+                    <label>Accepted Risk</label>
+                </value>
+            </valueSetDefinition>
+        </valueSet>
+    </fields>
+    <fields>
+        <fullName>Identified_Date__c</fullName>
+        <label>Identified Date</label>
+        <type>Date</type>
+        <required>false</required>
+        <defaultValue>TODAY()</defaultValue>
+    </fields>
+    <fields>
+        <fullName>Target_Resolution_Date__c</fullName>
+        <label>Target Resolution Date</label>
+        <type>Date</type>
+        <required>false</required>
+    </fields>
+</CustomObject>

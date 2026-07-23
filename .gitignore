@@ -1,0 +1,29 @@
+# Salesforce DX
+.sfdx/
+.sf/
+.localdevserver/
+deploy-options.json
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+
+# Scratch org config (generated)
+config/scratch-org-def.json
+
+# Node (if any scripts use it)
+node_modules/
+package-lock.json
+
+# Test results
+test-results/
+coverage/
