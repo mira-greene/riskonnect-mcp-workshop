@@ -148,7 +148,7 @@ actions:
         require_user_confirmation: False
         include_in_progress_indicator: False
         source: "analyze_regulatory_gap_action_id"
-        target: "mcpTool://mcptoolx5fx5fanalyzex5fregulatoryх5fgap"
+        target: "mcpTool://mcptoolx5fx5fanalyzex5fregulatoryx5fgap"
 
         inputs:
             "policy_id": string
