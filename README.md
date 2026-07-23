@@ -74,20 +74,18 @@ The Riskonnect Policy Advisory data is served by a small **Cloudflare Worker** t
 [`mcp-server/`](./mcp-server/) (see its [README](./mcp-server/README.md) for the endpoints, the mock
 dataset, and facilitator deploy steps).
 
-> ⚠️ **The credential shells ship with a placeholder domain (`YOUR-DOMAIN.workers.dev`), not the live
-> endpoint.** Your facilitator will give you the real Worker host. Either the facilitator has already
-> substituted it in the metadata before you cloned, **or** you must update the Named Credential URL and
-> the External Credential token URL to the real host (Setup, or edit the metadata) before the smoke test
-> in **GUIDE.md Module 2** — otherwise every callout returns 404.
+> ⚠️ **The credential metadata ships pointing at the live shared Worker host below.** If your
+> facilitator stands up their own Worker, they'll give you a different host — update the Named
+> Credential URL and the External Credential token URL to match before the smoke test in
+> **GUIDE.md Module 2**, otherwise every callout returns 404.
 
-These are the values you'll confirm/enter when you wire the credential in **GUIDE.md Module 2**
-(replace `YOUR-DOMAIN` with the real Worker host from your facilitator):
+These are the values you'll confirm/enter when you wire the credential in **GUIDE.md Module 2**:
 
 | What | Value |
 |---|---|
-| Named Credential URL (MCP endpoint) | `https://riskonnect-policy-advisor.YOUR-DOMAIN.workers.dev/policy-advisor` |
+| Named Credential URL (MCP endpoint) | `https://riskonnect-policy-advisor.mira-greene.workers.dev/policy-advisor` |
 | External Credential auth protocol | OAuth 2.0 — Client Credentials |
-| Token endpoint | `https://riskonnect-policy-advisor.YOUR-DOMAIN.workers.dev/oauth/token` |
+| Token endpoint | `https://riskonnect-policy-advisor.mira-greene.workers.dev/oauth/token` |
 | Scope | `read` |
 | Client ID / Secret | provided by your facilitator (entered in the UI or via CLI; never in this repo) |
 

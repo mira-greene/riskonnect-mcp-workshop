@@ -4,8 +4,8 @@ This document describes the mock MCP server for the Riskonnect Policy Agent work
 
 ## Server Details
 
-**Endpoint:** `https://riskonnect-policy-advisor.YOUR-DOMAIN.workers.dev/policy-advisor`  
-**OAuth Token Endpoint:** `https://riskonnect-policy-advisor.YOUR-DOMAIN.workers.dev/oauth/token`  
+**Endpoint:** `https://riskonnect-policy-advisor.mira-greene.workers.dev/policy-advisor`  
+**OAuth Token Endpoint:** `https://riskonnect-policy-advisor.mira-greene.workers.dev/oauth/token`  
 **Protocol:** JSON-RPC 2.0 over HTTP POST  
 **Authentication:** OAuth 2.0 Client Credentials
 

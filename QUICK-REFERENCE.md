@@ -177,8 +177,8 @@ sf data query --query "SELECT Id, Name, Regulation_Name__c, Severity__c FROM Pol
 
 ## MCP Server Details
 
-**Endpoint:** `https://riskonnect-policy-advisor.YOUR-DOMAIN.workers.dev/policy-advisor`  
-**Token URL:** `https://riskonnect-policy-advisor.YOUR-DOMAIN.workers.dev/oauth/token`  
+**Endpoint:** `https://riskonnect-policy-advisor.mira-greene.workers.dev/policy-advisor`  
+**Token URL:** `https://riskonnect-policy-advisor.mira-greene.workers.dev/oauth/token`  
 **Auth:** OAuth 2.0 Client Credentials  
 **Protocol:** JSON-RPC 2.0
 
