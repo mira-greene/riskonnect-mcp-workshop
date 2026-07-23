@@ -240,10 +240,28 @@ releases; dry-run in your own org first.
 > ⚠️ **The CLI track registers the server differently than the UI track — read this first.**
 > `sf agent mcp create` does **not** reference the deployed `RiskonnectPolicyAdvisor` Named Credential.
 > It creates its **own** API Catalog registration from the server URL plus inline OAuth, and OAuth
-> requires an **Auth Provider / identity provider already configured in the org** (`--identity-provider`).
-> So the CLI track needs an Auth Provider set up; the UI track (Track B) reuses the Named/External
-> Credential you configured in Module 2. Pick one track and stay on it. If you don't have an Auth
-> Provider, use **Track B** — it's fully supported and needs no extra setup.
+> requires an **identity provider already configured in the org**, passed by name to
+> `--identity-provider`. So the CLI track needs that identity provider set up first (see the
+> prerequisite below); the UI track (Track B) reuses the Named/External Credential you configured in
+> Module 2 and needs no extra setup. **Pick one track and stay on it.** If the prerequisite below
+> doesn't apply cleanly to your org, use **Track B** — it's fully supported.
+
+> **🔧 Track A prerequisite — the `--identity-provider` value.**
+> `sf agent mcp create --auth-type OAUTH` requires `--identity-provider <NAME>`, where `<NAME>` is the
+> **DeveloperName of an Auth. Provider** in your org configured for the OAuth client-credentials flow
+> against the mock server's token endpoint (`.../oauth/token`). Confirm what already exists before
+> creating anything:
+> ```bash
+> sf data query --query "SELECT Id, DeveloperName FROM AuthProvider" --target-org <alias>
+> ```
+> If a suitable provider exists, pass its `DeveloperName` to `--identity-provider`. If none exists,
+> create one in **Setup → Security → Auth. Providers → New**, pointing its token endpoint at
+> `https://riskonnect-policy-advisor.mira-greene.workers.dev/oauth/token` with the workshop
+> `client_id`/`client_secret` and scope `read`, then use its DeveloperName.
+> ⚠️ **This step is not yet verified end-to-end** — `sf agent mcp` is Developer Preview and the exact
+> identity-provider construct it accepts may differ by release. If `create` rejects the provider or
+> discovery returns nothing, **switch to Track B (UI)**; it does not need an Auth Provider and is the
+> guaranteed path. Do not burn workshop time fighting Track A — Track B produces the identical result.
 
 ```bash
 # 1. Register the MCP server in the API Catalog. `create` also auto-discovers the server's assets.
@@ -252,7 +270,7 @@ releases; dry-run in your own org first.
 sf agent mcp create \
   --name RiskonnectPolicyAdvisor \
   --label "Riskonnect Policy Advisor" \
-  --server-url "https://riskonnect-policy-advisor.<REAL-DOMAIN>.workers.dev/policy-advisor" \
+  --server-url "https://riskonnect-policy-advisor.mira-greene.workers.dev/policy-advisor" \
   --auth-type OAUTH \
   --identity-provider <AUTH_PROVIDER_NAME> \
   --client-id <CLIENT_ID> \
