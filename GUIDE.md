@@ -231,44 +231,66 @@ Register the 3 MCP tools so Agentforce can discover and invoke them. **Choose yo
 
 #### **Track A: CLI**
 
-Use the `sf agent mcp` command group (**Developer Preview**), which manages MCP servers as entries
-in the **API Catalog**. Tools are registered at the **server** level (as an asset set), not one tool
-at a time.
+Use the `sf agent mcp` command group (**Developer Preview**), which manages MCP servers as entries in
+the **API Catalog**. Flags below are verified against Salesforce CLI **2.144.6** — confirm your build
+with `sf version` and `sf agent mcp --help` (run `npm install -g @salesforce/cli@latest` if the group
+is missing). Every `sf agent mcp` command prints a Developer-Preview warning and may change between
+releases; dry-run in your own org first.
 
-> ⚠️ **Developer Preview + version note.** `sf agent mcp` ships in newer Salesforce CLI builds and is
-> a Developer Preview feature. Confirm it's available before you start:
-> ```bash
-> sf version                 # ensure a recent CLI; run `sf update` if the group is missing
-> sf agent mcp --help        # should list: create, get, list, update, delete, fetch, asset
-> ```
-> The exact flag names below can differ slightly by CLI version — always check `--help` on each
-> subcommand in *your* CLI and adjust. Every command in this block is Developer Preview and should be
-> dry-run in your own org before relying on it in front of others.
+> ⚠️ **The CLI track registers the server differently than the UI track — read this first.**
+> `sf agent mcp create` does **not** reference the deployed `RiskonnectPolicyAdvisor` Named Credential.
+> It creates its **own** API Catalog registration from the server URL plus inline OAuth, and OAuth
+> requires an **Auth Provider / identity provider already configured in the org** (`--identity-provider`).
+> So the CLI track needs an Auth Provider set up; the UI track (Track B) reuses the Named/External
+> Credential you configured in Module 2. Pick one track and stay on it. If you don't have an Auth
+> Provider, use **Track B** — it's fully supported and needs no extra setup.
 
 ```bash
-# 1. Fetch the live tools the MCP server advertises (discovery via the Named Credential)
-sf agent mcp fetch --help          # confirm the exact flag for the target server in your CLI
-sf agent mcp fetch --named-credential RiskonnectPolicyAdvisor --target-org <alias>
+# 1. Register the MCP server in the API Catalog. `create` also auto-discovers the server's assets.
+#    --server-url and (for OAuth) --identity-provider/--client-id/--client-secret/--scope are required.
+#    Pass the client secret via stdin ("-") to keep it out of shell history.
+sf agent mcp create \
+  --name RiskonnectPolicyAdvisor \
+  --label "Riskonnect Policy Advisor" \
+  --server-url "https://riskonnect-policy-advisor.<REAL-DOMAIN>.workers.dev/policy-advisor" \
+  --auth-type OAUTH \
+  --identity-provider <AUTH_PROVIDER_NAME> \
+  --client-id <CLIENT_ID> \
+  --client-secret - \
+  --scope read \
+  --target-org <alias>
+# → note the returned MCP server ID (looks like 0XSxx0000000001); you need it below.
 
-# 2. Register the MCP server in the API Catalog (if not already created by the deploy)
-sf agent mcp create --named-credential RiskonnectPolicyAdvisor --target-org <alias>
+# 2. (Optional) Refresh the live assets the server advertises
+sf agent mcp fetch --mcp-server-id <MCP_SERVER_ID> --target-org <alias>
 
-# 3. Set the server's tool/asset set from what `fetch` discovered
-#    (asset replace sets the WHOLE tool set — all 3 tools at once, not one-by-one)
-sf agent mcp asset replace --named-credential RiskonnectPolicyAdvisor --target-org <alias>
+# 3. List discovered assets to see their exact names, kind, and active/available state
+sf agent mcp asset list --mcp-server-id <MCP_SERVER_ID> --target-org <alias>
 
-# 4. Verify: list the server and its assets
+# 4. Activate the 3 tools. `asset replace` is a FULL replacement — pass the complete desired set.
+#    Asset names are the server's tool names as discovered in step 3 (verify them there first).
+sf agent mcp asset replace --mcp-server-id <MCP_SERVER_ID> --target-org <alias> --assets '{
+  "assets": [
+    { "name": "get_policy_details",        "active": true },
+    { "name": "analyze_regulatory_gap",    "active": true },
+    { "name": "recommend_policy_updates",  "active": true }
+  ]
+}'
+
+# 5. Verify
 sf agent mcp list --target-org <alias>
-sf agent mcp asset list --named-credential RiskonnectPolicyAdvisor --target-org <alias>
+sf agent mcp asset list --mcp-server-id <MCP_SERVER_ID> --target-org <alias>
 ```
 
-Expected after `asset list`: the 3 tools `get_policy_details`, `analyze_regulatory_gap`, and
-`recommend_policy_updates`.
+Expected after step 5: the server appears in `agent mcp list`, and `asset list` shows the 3 tools
+`get_policy_details`, `analyze_regulatory_gap`, `recommend_policy_updates` as active and available as
+agent actions.
 
-> **Notes:** discovery won't return tools until Checkpoint 2a is done (the principal must exist).
-> Salesforce **caches** the schema — after any server schema change, re-run `sf agent mcp fetch` then
-> `sf agent mcp asset replace` before re-verifying. If any subcommand or flag above is missing in your
-> CLI, use **Track B (UI)** — it's fully supported today.
+> **Notes.** Discovery returns nothing until the OAuth path authenticates, so the Auth Provider and
+> client id/secret must be valid. `asset replace` removes any asset not in the set you pass — always
+> `asset list` (or `fetch`) first and include the full desired set. Confirm the exact `--assets` name
+> values against step 3's output before running; the JSON above assumes the tool names match. If any
+> subcommand or flag is missing in your CLI, use **Track B (UI)**.
 
 #### **Track B: UI**
 
