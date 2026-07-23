@@ -231,26 +231,44 @@ Register the 3 MCP tools so Agentforce can discover and invoke them. **Choose yo
 
 #### **Track A: CLI**
 
-Use the Salesforce CLI with the MCP plugin (requires `@salesforce/plugin-mcp` installed):
+Use the `sf agent mcp` command group (**Developer Preview**), which manages MCP servers as entries
+in the **API Catalog**. Tools are registered at the **server** level (as an asset set), not one tool
+at a time.
+
+> ⚠️ **Developer Preview + version note.** `sf agent mcp` ships in newer Salesforce CLI builds and is
+> a Developer Preview feature. Confirm it's available before you start:
+> ```bash
+> sf version                 # ensure a recent CLI; run `sf update` if the group is missing
+> sf agent mcp --help        # should list: create, get, list, update, delete, fetch, asset
+> ```
+> The exact flag names below can differ slightly by CLI version — always check `--help` on each
+> subcommand in *your* CLI and adjust. Every command in this block is Developer Preview and should be
+> dry-run in your own org before relying on it in front of others.
 
 ```bash
-# Install the MCP plugin if not already installed
-sf plugins install @salesforce/plugin-mcp
+# 1. Fetch the live tools the MCP server advertises (discovery via the Named Credential)
+sf agent mcp fetch --help          # confirm the exact flag for the target server in your CLI
+sf agent mcp fetch --named-credential RiskonnectPolicyAdvisor --target-org <alias>
 
-# Fetch the tool schemas from the MCP server
-sf mcp fetch-tools --named-credential RiskonnectPolicyAdvisor --target-org <alias>
+# 2. Register the MCP server in the API Catalog (if not already created by the deploy)
+sf agent mcp create --named-credential RiskonnectPolicyAdvisor --target-org <alias>
 
-# Register each tool (the command auto-populates inputSchema and outputSchema)
-sf mcp register-tool --named-credential RiskonnectPolicyAdvisor --tool-name get_policy_details --target-org <alias>
-sf mcp register-tool --named-credential RiskonnectPolicyAdvisor --tool-name analyze_regulatory_gap --target-org <alias>
-sf mcp register-tool --named-credential RiskonnectPolicyAdvisor --tool-name recommend_policy_updates --target-org <alias>
+# 3. Set the server's tool/asset set from what `fetch` discovered
+#    (asset replace sets the WHOLE tool set — all 3 tools at once, not one-by-one)
+sf agent mcp asset replace --named-credential RiskonnectPolicyAdvisor --target-org <alias>
 
-# Verify all 3 are registered
-sf mcp list-tools --named-credential RiskonnectPolicyAdvisor --target-org <alias>
+# 4. Verify: list the server and its assets
+sf agent mcp list --target-org <alias>
+sf agent mcp asset list --named-credential RiskonnectPolicyAdvisor --target-org <alias>
 ```
 
-> **Notes:** the tool list won't load until Checkpoint 2a is done. Salesforce **caches** the schema —
-> after any server schema change, re-run `fetch-tools` before re-registering.
+Expected after `asset list`: the 3 tools `get_policy_details`, `analyze_regulatory_gap`, and
+`recommend_policy_updates`.
+
+> **Notes:** discovery won't return tools until Checkpoint 2a is done (the principal must exist).
+> Salesforce **caches** the schema — after any server schema change, re-run `sf agent mcp fetch` then
+> `sf agent mcp asset replace` before re-verifying. If any subcommand or flag above is missing in your
+> CLI, use **Track B (UI)** — it's fully supported today.
 
 #### **Track B: UI**
 
@@ -302,40 +320,12 @@ sf agent publish authoring-bundle --api-name PolicyAgent --target-org <alias>
 
 ### Step 2: Wire the 3 MCP actions to topics
 
-#### **Track A: CLI**
-
-Use the Salesforce CLI to wire MCP actions to agent topics:
-
-```bash
-# First, find the agent's GenAiPlannerDefinition ID
-sf data query --query "SELECT Id, DeveloperName FROM GenAiPlannerDefinition WHERE DeveloperName = 'PolicyAgent'" --target-org <alias> --json
-
-# Find the topic IDs (PolicyAgent has 2 topics: Policy_Analysis and Regulatory_Gap_Check)
-sf data query --query "SELECT Id, Label FROM GenAiPlannerTopic WHERE GenAiPlannerDefinitionId = '<AGENT_ID>'" --target-org <alias> --json
-
-# Find the MCP tool IDs
-sf data query --query "SELECT Id, DeveloperName FROM ExternalServiceAction WHERE DeveloperName IN ('get_policy_details', 'analyze_regulatory_gap', 'recommend_policy_updates')" --target-org <alias> --json
-
-# Wire the actions to topics (replace <TOPIC_ID> and <ACTION_ID>)
-# Policy_Analysis topic gets: get_policy_details, recommend_policy_updates
-sf data create record --sobject GenAiPlannerTopicAction \
-  --values "GenAiPlannerTopicId=<POLICY_ANALYSIS_TOPIC_ID> ActionId=<GET_POLICY_DETAILS_ACTION_ID>" \
-  --target-org <alias>
-
-sf data create record --sobject GenAiPlannerTopicAction \
-  --values "GenAiPlannerTopicId=<POLICY_ANALYSIS_TOPIC_ID> ActionId=<RECOMMEND_POLICY_UPDATES_ACTION_ID>" \
-  --target-org <alias>
-
-# Regulatory_Gap_Check topic gets: analyze_regulatory_gap
-sf data create record --sobject GenAiPlannerTopicAction \
-  --values "GenAiPlannerTopicId=<REGULATORY_GAP_CHECK_TOPIC_ID> ActionId=<ANALYZE_REGULATORY_GAP_ACTION_ID>" \
-  --target-org <alias>
-```
-
-> **Why CLI?** This is the programmatic way to wire actions without clicking through Agent Builder. The
-> topic-action bindings are metadata but can be managed via Tooling API.
-
-#### **Track B: UI**
+> **Both tracks converge here — this step is UI-only.** There is no supported `sf` command to attach
+> an individual action/tool to an agent topic. Agent capabilities come from the authoring bundle plus
+> `sf agent publish`; the *binding* of registered MCP tools to topics is done in Agent Builder. (This
+> is also why the ⛔ order above matters: `sf agent publish` re-runs from source and resets these
+> in-org bindings, so you wire them **after** publishing.) CLI-track participants: you did the CLI work
+> in Module 3 (registering the server/tools) — this one step is in the UI for everyone.
 
 Setup → Agentforce → Agents → open **Policy Agent** → for each topic:
 
