@@ -1,0 +1,17 @@
+{
+  "name": "riskonnect-policy-advisor-mcp",
+  "version": "1.0.0",
+  "description": "Mock MCP server (Cloudflare Worker) for the Riskonnect Policy Agent workshop",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "start": "wrangler dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "wrangler": "^4.111.0"
+  }
+}

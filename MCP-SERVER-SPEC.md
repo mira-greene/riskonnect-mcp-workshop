@@ -325,9 +325,13 @@ The server returns mock data for the following policies:
 Supported regulations for gap analysis:
 - **GDPR** (EU General Data Protection Regulation)
 - **CCPA** (California Consumer Privacy Act)
-- **SEC Cyber Rules** (SEC Cybersecurity Disclosure Rules)
-- **NIST CSF** (NIST Cybersecurity Framework)
-- **SOX** (Sarbanes-Oxley Act)
+- **SEC Cybersecurity Rules** (SEC Cybersecurity Disclosure Rules; accepts the alias "SEC Cyber Rules")
+- **NIST Cybersecurity Framework** (accepts the alias "NIST CSF")
+- **SOX** (Sarbanes-Oxley Act; accepts the alias "Sarbanes-Oxley")
+
+> The server matches `regulation_name` case-insensitively and resolves common aliases, but always
+> returns the **canonical** name shown in bold above (e.g. input "SEC Cyber Rules" → output
+> "SEC Cybersecurity Rules"). This canonical name matches `Regulation_Name__c` in `data/seed-gaps.apex`.
 
 ---
 

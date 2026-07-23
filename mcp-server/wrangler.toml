@@ -1,0 +1,19 @@
+# Cloudflare Worker config for the Riskonnect Policy Advisor mock MCP server.
+#
+# Deploy:  npx wrangler deploy
+# Secrets: npx wrangler secret put CLIENT_ID
+#          npx wrangler secret put CLIENT_SECRET
+# NEVER put the real client id/secret in this file — it is committed to git.
+
+name = "riskonnect-policy-advisor"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+# Public routes served by this Worker (all under the workers.dev subdomain or a
+# custom domain the facilitator configures):
+#   /oauth/token     -> OAuth 2.0 client-credentials token endpoint
+#   /policy-advisor  -> JSON-RPC 2.0 MCP endpoint
+#   /health          -> liveness probe
+
+# For local dev you can drop non-secret defaults in a .dev.vars file (gitignored).
+# In production, set CLIENT_ID and CLIENT_SECRET with `wrangler secret put`.
