@@ -103,8 +103,8 @@ are adding a **principal** to it.
 Use the Salesforce CLI to create the Named Principal:
 
 ```bash
-# First, retrieve the External Credential ID
-sf data query --query "SELECT Id, DeveloperName FROM NamedCredential WHERE DeveloperName = 'RiskonnectPolicyAdvisor'" --target-org <alias> --json
+# First, retrieve the External Credential ID (query ExternalCredential — NOT NamedCredential; they are different objects)
+sf data query --query "SELECT Id, DeveloperName FROM ExternalCredential WHERE DeveloperName = 'RiskonnectPolicyAdvisor'" --target-org <alias> --json
 
 # Note the Id, then create the principal (replace <EXTERNAL_CRED_ID> and <CLIENT_ID>/<CLIENT_SECRET>)
 sf data create record --sobject ExternalCredentialPrincipal \
