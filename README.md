@@ -39,7 +39,9 @@ cp .env.example .env          # set ORG_ALIAS to your org alias
 # then follow GUIDE.md from Module 2 (the credential is a manual step)
 ```
 
-All scripts accept `--org <alias>` if you don't use `.env`.
+`04-smoke-test.sh` (verify the callout) and `05-seed-data.sh` (load demo records) run later, at the
+points GUIDE.md calls for them — after the credential exists. All scripts accept `--org <alias>` if
+you don't use `.env`.
 
 ## The happy path (6 modules, ~2 hours)
 
@@ -56,10 +58,11 @@ All scripts accept `--org <alias>` if you don't use `.env`.
 
 ```
 force-app/   the agent bundle, Named Credential shells, External Credential, permission sets, custom objects
-scripts/     numbered helpers (01-check-env, 02-deploy, 03-assign-perms, 04-smoke-test)
+scripts/     numbered helpers (01-check-env, 02-deploy, 03-assign-perms, 04-smoke-test, 05-seed-data)
   apex/      test_callout.apex, assign-piu-permset.apex
   lib/       common.sh (shared bash helpers)
-data/        policy-gap-records.apex (seed payload for demo Policy_Gap__c records)
+data/        seed-policies.apex + seed-gaps.apex (seed payloads for Policy_Document__c / Policy_Gap__c)
+mcp-server/  source for the shared mock MCP server (Cloudflare Worker) — facilitators deploy; participants don't
 config/      scratch-org def (optional — participants use pre-configured orgs in the workshop)
 GUIDE.md     the full build guide with CLI + UI tracks side-by-side — start here
 ```
@@ -67,7 +70,9 @@ GUIDE.md     the full build guide with CLI + UI tracks side-by-side — start he
 ## The mock MCP server
 
 The Riskonnect Policy Advisory data is served by a small **Cloudflare Worker** that speaks MCP. It's
-**shared and hosted** — you do not deploy or run it.
+**shared and hosted** — as a participant you do not deploy or run it. The Worker source lives in
+[`mcp-server/`](./mcp-server/) (see its [README](./mcp-server/README.md) for the endpoints, the mock
+dataset, and facilitator deploy steps).
 
 > ⚠️ **The credential shells ship with a placeholder domain (`YOUR-DOMAIN.workers.dev`), not the live
 > endpoint.** Your facilitator will give you the real Worker host. Either the facilitator has already
