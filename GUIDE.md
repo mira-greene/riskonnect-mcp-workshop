@@ -68,9 +68,13 @@ Run the deployment scripts:
 
 ```bash
 ./scripts/01-check-env.sh          # tooling + authenticated org
-./scripts/02-deploy.sh             # deploys all source (incl. the agent bundle)
+./scripts/02-deploy.sh             # deploys all source (incl. the agent bundle as a DRAFT)
 ./scripts/03-assign-perms.sh       # assigns the permission set to you
 ```
+
+> The agent bundle deploys here as an **unpublished draft** — that's expected. It can't be *published*
+> into a runnable agent until Module 4, because publishing compiles the Agent Script and needs the MCP
+> actions (registered in Module 3) to exist first. Module 1 just lands the source.
 
 Then verify: `sf org open` → Setup → Object Manager → confirm **Policy_Gap__c** and
 **Policy_Document__c** appear.
@@ -353,8 +357,14 @@ Validate, then publish:
 
 ```bash
 sf agent validate authoring-bundle --api-name PolicyAgent --target-org <alias>
-sf agent publish authoring-bundle --api-name PolicyAgent --target-org <alias>
+sf agent publish authoring-bundle --api-name PolicyAgent --skip-retrieve --target-org <alias>
 ```
+
+> **`--skip-retrieve` is deliberate.** Publishing compiles the Agent Script and generates
+> Bot / BotVersion / GenAiPlannerBundle / GenAiPlugin / GenAiFunction metadata in the org. Without
+> `--skip-retrieve` the CLI pulls all of that back into `force-app/`, dirtying your working tree with
+> build artifacts you should not commit. The agent lives in the org; you don't need the generated
+> source locally. (The repo `.gitignore` also excludes these as a backstop.)
 
 ---
 

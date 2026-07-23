@@ -21,11 +21,8 @@
         <modifyAllRecords>true</modifyAllRecords>
         <viewAllRecords>true</viewAllRecords>
     </objectPermissions>
-    <fieldPermissions>
-        <field>Policy_Document__c.Policy_ID__c</field>
-        <readable>true</readable>
-        <editable>true</editable>
-    </fieldPermissions>
+    <!-- Policy_ID__c is required (universally required) — field permissions cannot be
+         granted on it explicitly; access is implicit. -->
     <fieldPermissions>
         <field>Policy_Document__c.Policy_Category__c</field>
         <readable>true</readable>
