@@ -1,5 +1,8 @@
 # Riskonnect Policy Agent Workshop
 
+[![GitHub](https://img.shields.io/badge/GitHub-riskonnect--mcp--workshop-blue?logo=github)](https://github.com/mira-greene/riskonnect-mcp-workshop)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Clone this repo to build the **Policy Agent** Agentforce agent in your assigned org and connect it
 to a shared mock **MCP server** for policy gap analysis and regulatory compliance monitoring.
 
@@ -27,6 +30,8 @@ not deploy it.
 ## Quick start
 
 ```bash
+git clone https://github.com/mira-greene/riskonnect-mcp-workshop.git
+cd riskonnect-mcp-workshop
 cp .env.example .env          # set ORG_ALIAS to your org alias
 ./scripts/01-check-env.sh
 ./scripts/02-deploy.sh
@@ -91,3 +96,12 @@ at it; these are the values you'll confirm/enter when you wire the credential in
   enabled separately by your facilitator.
 - Custom objects: **`Policy_Gap__c`** (tracks identified gaps) and **`Policy_Document__c`** (catalog
   of organizational policies).
+
+## Contributing
+
+This workshop is open source under the MIT License. Contributions welcome! Please file issues or PRs at:
+https://github.com/mira-greene/riskonnect-mcp-workshop
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details.
