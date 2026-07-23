@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Riskonnect Policy Agent Access</label>
+    <description>Grants run access to the published Policy Agent. Deploy and assign this AFTER the agent is published in Module 4 — agentAccesses requires the Bot to already exist in the org, so it cannot ship with the Module 1 metadata.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <agentAccesses>
+        <agentName>PolicyAgent</agentName>
+        <enabled>true</enabled>
+    </agentAccesses>
+</PermissionSet>

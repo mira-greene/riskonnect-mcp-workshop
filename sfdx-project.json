@@ -3,6 +3,9 @@
     {
       "path": "force-app",
       "default": true
+    },
+    {
+      "path": "agent-access"
     }
   ],
   "name": "riskonnect-mcp-workshop",

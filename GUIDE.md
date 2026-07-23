@@ -406,6 +406,21 @@ Setup → Agentforce → Agents → open **Policy Agent** → **Activate** butto
 
 ---
 
+### Step 4: Grant agent-run access (both tracks)
+
+The Module 1 permission set covers the data objects, but *running* the agent needs a separate grant
+that references the published **PolicyAgent** Bot. That reference can't resolve until now — which is why
+it ships as its own permission set (`agent-access/`) deployed here, not in Module 1.
+
+```bash
+sf project deploy start --source-dir agent-access/main/default --target-org <alias>
+sf org assign permset --name Riskonnect_Policy_Agent_Access --target-org <alias>
+```
+
+Or run the helper: `./scripts/06-grant-agent-access.sh --org <alias>`
+
+---
+
 ## Module 5 — Verify & Iterate
 
 ### Verify the agent works
