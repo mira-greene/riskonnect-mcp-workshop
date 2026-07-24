@@ -252,8 +252,8 @@ releases; dry-run in your own org first.
 
 > **🔧 Track A prerequisite — the `--identity-provider` value.**
 > `sf agent mcp create --auth-type OAUTH` requires `--identity-provider <NAME>`, where `<NAME>` is the
-> **DeveloperName of an Auth. Provider** in your org configured for the OAuth client-credentials flow
-> against the mock server's token endpoint (`.../oauth/token`). Confirm what already exists before
+> **DeveloperName of a classic Auth. Provider** in your org configured for the OAuth client-credentials
+> flow against the mock server's token endpoint (`.../oauth/token`). Confirm what already exists before
 > creating anything:
 > ```bash
 > sf data query --query "SELECT Id, DeveloperName FROM AuthProvider" --target-org <alias>
@@ -262,21 +262,33 @@ releases; dry-run in your own org first.
 > create one in **Setup → Security → Auth. Providers → New**, pointing its token endpoint at
 > `https://riskonnect-policy-advisor.mira-greene.workers.dev/oauth/token` with the workshop
 > `client_id`/`client_secret` and scope `read`, then use its DeveloperName.
-> ⚠️ **This step is not yet verified end-to-end** — `sf agent mcp` is Developer Preview and the exact
-> identity-provider construct it accepts may differ by release. If `create` rejects the provider or
-> discovery returns nothing, **switch to Track B (UI)**; it does not need an Auth Provider and is the
-> guaranteed path. Do not burn workshop time fighting Track A — Track B produces the identical result.
+> ⚠️ **VERIFIED 2026-07-24 — Track A OAuth needs a classic `AuthProvider`, and the flow is fragile.**
+> Passing the deployed `ExternalAuthIdentityProvider` (`RiskonnectPolicyAdvisorIdp`) to
+> `--identity-provider` **fails**: `create` returns `BAD_REQUEST: Failed to fetch MCP server definition`
+> and — confirmed by tailing the server — **never makes any callout** (it can't resolve the OAuth config
+> before egress). A classic `AuthProvider` is a different construct than the `ExternalAuthIdentityProvider`
+> the repo deploys in Module 2, and a fresh org has **zero** classic AuthProviders. So Track A OAuth
+> requires you to hand-create a classic Auth Provider first, which is itself awkward for the
+> client-credentials grant. **Recommendation: use Track B (UI)** — it reuses the Module 2
+> Named/External Credential, needs no Auth Provider, and is the guaranteed path. Do not burn workshop
+> time fighting Track A. (The mock server's OAuth itself is fine: `POST /oauth/token` → 200 and an
+> authed `tools/list` returns all 3 tools; the failure is purely in the CLI's OAuth identity-provider
+> resolution.)
 
 ```bash
 # 1. Register the MCP server in the API Catalog. `create` also auto-discovers the server's assets.
 #    --server-url and (for OAuth) --identity-provider/--client-id/--client-secret/--scope are required.
 #    Pass the client secret via stdin ("-") to keep it out of shell history.
+# NOTE: --name must NOT be "RiskonnectPolicyAdvisor" — `create` builds its own API Catalog
+#       named credential from --name, which COLLIDES with the Module 2 NamedCredential of that
+#       name ("already exists"). Use a distinct name, e.g. RiskonnectPolicyAdvisorMCP.
+# NOTE: --server-url MUST include the /policy-advisor path (the base URL returns 404).
 sf agent mcp create \
-  --name RiskonnectPolicyAdvisor \
+  --name RiskonnectPolicyAdvisorMCP \
   --label "Riskonnect Policy Advisor" \
   --server-url "https://riskonnect-policy-advisor.mira-greene.workers.dev/policy-advisor" \
   --auth-type OAUTH \
-  --identity-provider <AUTH_PROVIDER_NAME> \
+  --identity-provider <CLASSIC_AUTH_PROVIDER_NAME> \
   --client-id <CLIENT_ID> \
   --client-secret - \
   --scope read \

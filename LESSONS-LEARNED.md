@@ -304,6 +304,47 @@ a clean `validate` is necessary but not sufficient.
 
 ---
 
+## Issue: `sf agent mcp create --auth-type OAUTH` fails "Failed to fetch MCP server definition" (Track A)
+
+**Symptom:** `sf agent mcp create ... --auth-type OAUTH --identity-provider <name>` returns
+`BAD_REQUEST: API Catalog Error fetching server definition <name>: Failed to fetch MCP server
+definition.` Nothing registers (`sf agent mcp list` stays empty).
+
+**Verified root cause (2026-07-24, CLI 2.144.6, scratch org):** `--identity-provider` expects a
+**classic `AuthProvider`** DeveloperName. Passing an `ExternalAuthIdentityProvider` (the construct the
+repo deploys in Module 2, e.g. `RiskonnectPolicyAdvisorIdp`) does not resolve, and a fresh org has
+**zero** classic AuthProviders. The command fails **before any HTTP callout** — confirmed by
+`wrangler tail` on the mock server showing **zero requests** during an OAuTH `create`, while a
+`--auth-type NO_AUTH` `create` against the same URL **did** hit the server (`POST /policy-advisor`).
+So the OAuth identity-provider resolution is the blocker, not the URL, path, or credentials.
+
+**How this was proven (reusable diagnostic):**
+1. Confirm the creds/endpoint independently: `POST /oauth/token` returns 200 + `access_token`; an authed
+   `POST /policy-advisor` `tools/list` returns the tools. (If this fails, it's a credential problem —
+   see the `invalid_client` note below.)
+2. `wrangler tail` the server, then run `create`. **Zero requests = failure is internal to Salesforce
+   (pre-callout).** A control request (`curl .../health`) proves the tail is capturing.
+3. Re-run with `--auth-type NO_AUTH` (drops `--identity-provider`). If a callout now appears, the OAuth
+   identity-provider path is the culprit.
+
+**`invalid_client` on `/oauth/token`:** the mock server checks **both** `client_id` and `client_secret`
+and returns `invalid_client` (401) if **either** mismatches. Cloudflare secrets can't be read back — if
+the pair is wrong, reset with `wrangler secret put CLIENT_ID` / `CLIENT_SECRET` (use a hex secret; avoid
+`+ / =` which break form-encoding). Resetting `CLIENT_SECRET` invalidates all previously-issued bearer
+tokens (they're stateless HMACs signed with it).
+
+**Fix / recommendation:** **use Track B (UI)** for MCP registration — it reuses the Module 2
+Named/External Credential, needs no AuthProvider, and is the guaranteed path. If you must use Track A
+OAuth, hand-create a classic Auth Provider (Setup → Security → Auth. Providers) for the
+client-credentials flow first, then pass its DeveloperName.
+
+**Two more Track A gotchas (verified same session):**
+- `--name` builds its own API Catalog named credential; using `RiskonnectPolicyAdvisor` **collides** with
+  the Module 2 NamedCredential ("already exists"). Use a distinct name (e.g. `RiskonnectPolicyAdvisorMCP`).
+- `--server-url` must include the `/policy-advisor` path; the base URL returns 404.
+
+---
+
 ## Best Practices for Facilitators
 
 1. **Pre-provision orgs** — Agentforce must be enabled by Salesforce support; participants cannot enable it themselves.
